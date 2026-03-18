@@ -1,0 +1,4 @@
+0 23 * * * /etc/scripts/wifi_off.sh
+
+0 7  * * * /etc/scripts/wifi_on.sh
+

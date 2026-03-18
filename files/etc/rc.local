@@ -1,6 +1,12 @@
 # Put your custom commands here that should be executed once
 # the system init finished. By default this file does nothing.
 
-# SSH hardening
-awk '$5 >= 3071' /etc/ssh/moduli > /etc/ssh/moduli.safe
-mv /etc/ssh/moduli.safe /etc/ssh/moduli
+# Wait for interfaces to come up
+sleep 15
+
+/etc/scripts/aql_tuning.sh
+# /etc/scripts/manual_interrupts.sh
+# /etc/scripts/airtime_fairness.sh
+
+exit 0
+
