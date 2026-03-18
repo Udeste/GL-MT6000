@@ -1,0 +1,83 @@
+#!/bin/sh
+
+[ -e /etc/config/wireless ] || touch /etc/config/wireless
+
+# Read WiFi credentials from U-Boot env, fall back to defaults
+WIFI_SSID=$(fw_printenv -n wifi_ssid 2>/dev/null)
+WIFI_KEY=$(fw_printenv -n wifi_key 2>/dev/null)
+
+if [ -z "$WIFI_SSID" ]; then
+    echo "WARNING: wifi_ssid not found in U-Boot env, using default." >&2
+    WIFI_SSID="GL-MT6000"
+fi
+
+if [ -z "$WIFI_KEY" ]; then
+    echo "WARNING: wifi_key not found in U-Boot env, using default." >&2
+    WIFI_KEY="changeme123"
+fi
+
+uci -q batch << EOI
+
+# Wireless radio0 specific settings
+set wireless.radio0.country='NL'
+set wireless.radio0.band='2g'
+set wireless.radio0.channel='auto'
+set wireless.radio0.htmode='HE40'
+set wireless.radio0.cell_density='0'
+set wireless.radio0.vendor_vht='1'
+set wireless.radio0.itxbfen='1'
+set wireless.radio0.he_twt_responder='1'
+
+set wireless.default_radio0.ssid='$WIFI_SSID'
+set wireless.default_radio0.encryption='sae'
+set wireless.default_radio0.key='$WIFI_KEY'
+# set wireless.default_radio0.noscan='1'
+set wireless.default_radio0.dtim_period='2'
+set wireless.default_radio0.beacon_int='100'
+set wireless.default_radio0.ocv='0'
+set wireless.default_radio0.ieee80211k='1'
+set wireless.default_radio0.ieee80211n='1'
+set wireless.default_radio0.ieee80211r='1'
+set wireless.default_radio0.ieee80211v='1'
+set wireless.default_radio0.ieee80211w='2'
+set wireless.default_radio0.bss_transition='1'
+set wireless.default_radio0.no_auth_if_seen_on='phy1-ap0'
+set wireless.default_radio0.track_sta_max_num='100'
+set wireless.default_radio0.wnm_sleep_mode='1'
+set wireless.default_radio0.wnm_sleep_mode_no_keys='1'
+set wireless.default_radio0.ft_over_ds='0'
+
+# Wireless radio1 specific settings
+set wireless.radio1.country='NL'
+set wireless.radio1.band='5g'
+set wireless.radio1.channel='100'
+set wireless.radio1.htmode='HE80'
+set wireless.radio1.cell_density='0'
+set wireless.radio1.background_radar='1'
+set wireless.radio1.disabled='0'
+set wireless.radio1.itxbfen='1'
+set wireless.radio1.he_twt_responder='1'
+set wireless.radio1.channels='120-153'
+
+set wireless.default_radio1.ssid='$WIFI_SSID'
+set wireless.default_radio1.encryption='sae'
+set wireless.default_radio1.key='$WIFI_KEY'
+# set wireless.default_radio1.noscan='1'
+set wireless.default_radio1.dtim_period='2'
+set wireless.default_radio1.beacon_int='100'
+set wireless.default_radio1.ocv='0'
+set wireless.default_radio1.ieee80211k='1'
+set wireless.default_radio1.ieee80211r='1'
+set wireless.default_radio1.ieee80211v='1'
+set wireless.default_radio1.ieee80211w='2'
+set wireless.default_radio1.bss_transition='1'
+set wireless.default_radio1.track_sta_max_num='100'
+set wireless.default_radio1.disabled='0'
+set wireless.default_radio1.wnm_sleep_mode='1'
+set wireless.default_radio1.wnm_sleep_mode_no_keys='1'
+set wireless.default_radio1.ft_over_ds='0'
+
+commit wireless
+EOI
+
+exit 0

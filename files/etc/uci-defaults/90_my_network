@@ -1,0 +1,23 @@
+#!/bin/sh
+
+DHCP_DEFAULT_DUID=$(fw_printenv -n dhcp_default_duid 2>/dev/null)
+
+if [ -z "$DHCP_DEFAULT_DUID" ]; then
+    echo "WARNING: dhcp_default_duid not found in U-Boot env, using default." >&2
+    DHCP_DEFAULT_DUID="000000000000000000000000000000000000"
+fi
+
+uci -q batch << EOI
+
+set network.globals.ula_prefix='fd08::/48'
+set network.globals.packet_steering='0'
+set network.globals.dhcp_default_duid='$DHCP_DEFAULT_DUID'
+
+set network.lan.ipaddr='192.168.8.1'
+
+set network.wan.hostname='*'
+
+commit network
+EOI
+
+exit 0
