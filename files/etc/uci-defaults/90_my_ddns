@@ -1,6 +1,6 @@
 #!/bin/sh
 
-[ -e /etc/config/ddns ] && exit 0
+[ -e /etc/config/ddns ] || touch /etc/config/ddns
 
 # Read DDNS credentials from U-Boot env, fall back to defaults
 DDNS_LOOKUP_HOST=$(fw_printenv -n ddns_cf_lookup_host 2>/dev/null)

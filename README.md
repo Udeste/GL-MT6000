@@ -36,7 +36,7 @@ Compared to [pesa1234](https://github.com/pesa1234)'s custom firmware, this firm
 - Some packages included by default:
   - **collectd** and **luci-app-statistics** for monitoring and graphing system performance (CPU, RAM, network traffic, etc).
   - **iperf3** for network performance testing.
-  - **watch**, **wget**, **htop**, **drill**
+  - **watch**, **wget**, **htop**, **drill**, **jq**
 
 And also:
 - **REMOVED:** adblock, avahi, samba, usb storage, zerotier, tailscale and probably more stuff I forgot to mention.
