@@ -21,7 +21,7 @@ uci -q batch << EOI
 # Wireless radio0 specific settings
 set wireless.radio0.country='NL'
 set wireless.radio0.band='2g'
-set wireless.radio0.channel='auto'
+set wireless.radio0.channel='6'
 set wireless.radio0.htmode='HE40'
 set wireless.radio0.cell_density='0'
 set wireless.radio0.vendor_vht='1'
@@ -43,12 +43,14 @@ set wireless.default_radio0.track_sta_max_num='100'
 set wireless.default_radio0.wnm_sleep_mode='1'
 set wireless.default_radio0.wnm_sleep_mode_no_keys='1'
 set wireless.default_radio0.ft_over_ds='0'
+set wireless.default_radio0.multicast_to_unicast_all='1'
+set wireless.default_radio0.mobility_domain='FA89'
 
 # Wireless radio1 specific settings
 set wireless.radio1.country='NL'
 set wireless.radio1.band='5g'
 set wireless.radio1.channel='100'
-set wireless.radio1.htmode='HE80'
+set wireless.radio1.htmode='HE160'
 set wireless.radio1.cell_density='0'
 set wireless.radio1.background_radar='1'
 set wireless.radio1.disabled='0'
@@ -71,6 +73,8 @@ set wireless.default_radio1.disabled='0'
 set wireless.default_radio1.wnm_sleep_mode='1'
 set wireless.default_radio1.wnm_sleep_mode_no_keys='1'
 set wireless.default_radio1.ft_over_ds='0'
+set wireless.default_radio1.multicast_to_unicast_all='1'
+set wireless.default_radio1.mobility_domain='FA89'
 
 commit wireless
 EOI
