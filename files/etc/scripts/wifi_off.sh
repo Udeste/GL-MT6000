@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Lower TX power on 2.4Ghz
-uci set wireless.radio0.txpower='15'
+uci set wireless.radio0.txpower='10'
 
 # Disable 5Ghz
 uci set wireless.radio1.disabled=1
