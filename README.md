@@ -57,7 +57,7 @@ To set those variables, you need to access the router via SSH and run the `fw_se
 Like i.e.:
 
 ```shell
-root@GL-MT6000:~# fw_setenv wifi_ssid "your_wifi_ssid"`
+root@GL-MT6000:~# fw_setenv wifi_ssid "your_wifi_ssid"
 ```
 ### Recovery options if something goes wrong
 If you flash this firmware without setting the required U-Boot environment variables, your router will be bricked.
