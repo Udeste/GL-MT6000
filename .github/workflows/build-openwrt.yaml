@@ -111,19 +111,49 @@ jobs:
         run: |
           RELEASE_DATE=$(date +%F)
           gh release delete "${{ needs.check_commits.outputs.release_prefix }}-${RELEASE_DATE}" --cleanup-tag -y --repo "${{ github.repository }}" ||:
-          gh release create "${{ needs.check_commits.outputs.release_prefix }}-${RELEASE_DATE}" --repo "${{ github.repository }}" --latest --notes "### 🔄 Main Repository
+
+          NOTES=$(cat << 'EOF'
+          ### 🔄 Main Repository
           - **Repository:** [${{ env.REMOTE_REPOSITORY }}](https://github.com/${{ env.REMOTE_REPOSITORY }})
           - **Branch:** ${{ needs.check_commits.outputs.remote_branch }}
           - **Commit:** ${{ needs.check_commits.outputs.latest_commit_sha }}
-          
+
+          ---
+
+          ## ⚠️ Heavily Customized Build — Read Before Flashing
+
+          This build is tailored for **MY** Flint 2 (GL-MT6000) and based on **MY PREFERENCES** and [pesa1234](https://github.com/pesa1234)'s [work](https://forum.openwrt.org/t/mt6000-custom-build-with-luci-and-some-optimization-kernel-6-12-x/185241).
+
+          ### 🔑 U-Boot Environment Variables Required
+          Several values are read from the **U-Boot environment** at boot time — if not set, flashing this image **will brick your router**. 🧱
+
+          ### 📖 Before You Proceed
+          Read the [`README`](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/README.md) for the required variables, how to set them and 🛡️ [recovery options](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/README.md#recovery-options-if-something-goes-wrong).
+
+          > **Do not use** these firmwares unless you have the exact same setup. **Fork and adapt instead.** 🚨
+
+          ---
+
           ### 📝 Build Information
           - **Target:** [Flint 2 (GL-MT6000)](https://openwrt.org/toh/gl.inet/gl-mt6000)
           - **Configuration:** [${{ env.CONFIG_FILE }}](${{ env.CONFIG_FILE }})
-          - **WiFi UCODE scripts**
           - **Wireguard VPN**
-          - **Policy Based Routing**
-          - **Ad Block Fast**
-          - **REMOVED:** odhcp, upnp, iptables, avahi, samba, usb storage..." --title "OpenWrt Custom Release for Flint 2 (${{ needs.check_commits.outputs.release_prefix }}-${RELEASE_DATE})" firmware/*
+          - **Shell history enabled**
+          - **DDNS for** Cloudflare
+          - Included packages:
+            - **collectd** and **luci-app-statistics** for monitoring and graphing system performance (CPU, RAM, network traffic, etc).
+            - **iperf3** for network performance testing.
+            - **watch**, **wget**, **htop**, **drill**
+          - **REMOVED:** adblock, avahi, samba, usb storage, zerotier, tailscale ...
+          EOF
+          )
+
+          gh release create "${{ needs.check_commits.outputs.release_prefix }}-${RELEASE_DATE}" \
+            --repo "${{ github.repository }}" \
+            --latest \
+            --title "OpenWrt Custom Release for Flint 2 (${{ needs.check_commits.outputs.release_prefix }}-${RELEASE_DATE})" \
+            --notes "$NOTES" \
+          firmware/*
 
       - name: Clean up old releases
         run: |
