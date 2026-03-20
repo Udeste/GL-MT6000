@@ -1,17 +1,18 @@
 #!/bin/sh
 
 # Read DHCP host credentials from U-Boot env, fall back to defaults
-PI5_MAC=$(fw_printenv -n dhcp_host_pi5_mac 2>/dev/null)
-PI5_DUID=$(fw_printenv -n dhcp_host_pi5_duid 2>/dev/null)
+HOST0_NAME=$(fw_printenv -n dhcp_host0_name 2>/dev/null)
+HOST0_MAC=$(fw_printenv -n dhcp_host0_mac 2>/dev/null)
+HOST0_DUID=$(fw_printenv -n dhcp_host0_duid 2>/dev/null)
 
-if [ -z "$PI5_MAC" ]; then
+if [ -z "$HOST0_MAC" ]; then
     echo "WARNING: dhcp_host_pi5_mac not found in U-Boot env, using default." >&2
-    PI5_MAC="00:11:22:33:44:55"
+    HOST0_MAC="00:11:22:33:44:55"
 fi
 
-if [ -z "$PI5_DUID" ]; then
+if [ -z "$HOST0_DUID" ]; then
     echo "WARNING: dhcp_host_pi5_duid not found in U-Boot env, using default." >&2
-    PI5_DUID="000000000000000000000000000000000000"
+    HOST0_DUID="000000000000000000000000000000000000"
 fi
 
 has_host() {
@@ -23,12 +24,12 @@ has_host() {
     return 1
 }
 
-has_host 'BettoPi5' || {
+has_host "$HOST0_NAME" || {
     uci -q add dhcp host
-    uci -q set dhcp.@host[-1].name='BettoPi5'
+    uci -q set dhcp.@host[-1].name="$HOST0_NAME"
     uci -q set dhcp.@host[-1].ip='192.168.8.5'
-    uci -q add_list dhcp.@host[-1].mac="$PI5_MAC"
-    uci -q set dhcp.@host[-1].duid="$PI5_DUID"
+    uci -q add_list dhcp.@host[-1].mac="$HOST0_MAC"
+    uci -q set dhcp.@host[-1].duid="$HOST0_DUID"
     uci -q set dhcp.@host[-1].hostid='05'
 }
 
