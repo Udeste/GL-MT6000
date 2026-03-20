@@ -2,3 +2,5 @@
 
 0 7  * * * /etc/scripts/wifi_on.sh
 
+0 8 * * * /etc/scripts/best_wifi_channel.sh 2>&1 | logger -t best_channel
+
