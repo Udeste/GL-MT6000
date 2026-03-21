@@ -13,6 +13,8 @@ has_led() {
 uci -q batch << EOI
 set system.@system[0].hostname='GL-MT6000'
 set system.@system[0].zonename='Europe/Amsterdam'
+set system.@system[0].timezone='CET-1CEST,M3.5.0,M10.5.0/3
+set system.@system[0].clock_timestyle='1'
 EOI
 
 # LED: blue:run — only if not already configured

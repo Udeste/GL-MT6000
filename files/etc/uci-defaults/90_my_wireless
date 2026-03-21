@@ -6,15 +6,9 @@
 WIFI_SSID=$(fw_printenv -n wifi_ssid 2>/dev/null)
 WIFI_KEY=$(fw_printenv -n wifi_key 2>/dev/null)
 
-if [ -z "$WIFI_SSID" ]; then
-    echo "WARNING: wifi_ssid not found in U-Boot env, using default." >&2
-    WIFI_SSID="GL-MT6000"
-fi
-
-if [ -z "$WIFI_KEY" ]; then
-    echo "WARNING: wifi_key not found in U-Boot env, using default." >&2
-    WIFI_KEY="changeme123"
-fi
+# Set defaults if any of the values are missing
+WIFI_SSID=${WIFI_SSID:-"GL-MT6000"}
+WIFI_KEY=${WIFI_KEY:-"changeme123"}
 
 uci -q batch << EOI
 

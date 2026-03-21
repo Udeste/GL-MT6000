@@ -16,6 +16,21 @@ WG0_PEER5_PUB_KEY=$(fw_printenv -n wg0_peer5_pub_key 2>/dev/null)
 WG0_PEER6_PRIV_KEY=$(fw_printenv -n wg0_peer6_priv_key 2>/dev/null)
 WG0_PEER6_PUB_KEY=$(fw_printenv -n wg0_peer6_pub_key 2>/dev/null)
 
+# Set defaults if any of the values are missing
+WG0_PRIV_KEY=${WG0_PRIV_KEY:-"missing-value-in-uboot"}
+WG0_PEER1_PRIV_KEY=${WG0_PEER1_PRIV_KEY:-"missing-value-in-uboot"}
+WG0_PEER1_PUB_KEY=${WG0_PEER1_PUB_KEY:-"missing-value-in-uboot"}
+WG0_PEER2_PRIV_KEY=${WG0_PEER2_PRIV_KEY:-"missing-value-in-uboot"}
+WG0_PEER2_PUB_KEY=${WG0_PEER2_PUB_KEY:-"missing-value-in-uboot"}
+WG0_PEER3_PRIV_KEY=${WG0_PEER3_PRIV_KEY:-"missing-value-in-uboot"}
+WG0_PEER3_PUB_KEY=${WG0_PEER3_PUB_KEY:-"missing-value-in-uboot"}
+WG0_PEER4_PRIV_KEY=${WG0_PEER4_PRIV_KEY:-"missing-value-in-uboot"}
+WG0_PEER4_PUB_KEY=${WG0_PEER4_PUB_KEY:-"missing-value-in-uboot"}
+WG0_PEER5_PRIV_KEY=${WG0_PEER5_PRIV_KEY:-"missing-value-in-uboot"}
+WG0_PEER5_PUB_KEY=${WG0_PEER5_PUB_KEY:-"missing-value-in-uboot"}
+WG0_PEER6_PRIV_KEY=${WG0_PEER6_PRIV_KEY:-"missing-value-in-uboot"}
+WG0_PEER6_PUB_KEY=${WG0_PEER6_PUB_KEY:-"missing-value-in-uboot"}
+
 uci -q batch << EOI
 
 set network.wg0=interface

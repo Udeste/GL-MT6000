@@ -7,26 +7,20 @@ DDNS_LOOKUP_HOST=$(fw_printenv -n ddns_cf_lookup_host 2>/dev/null)
 DDNS_DOMAIN=$(fw_printenv -n ddns_cf_domain 2>/dev/null)
 DDNS_PASSWORD=$(fw_printenv -n ddns_cf_password 2>/dev/null)
 
-if [ -z "$DDNS_LOOKUP_HOST" ]; then
-    echo "WARNING: ddns_lookup_host not found in U-Boot env, using default." >&2
-    DDNS_LOOKUP_HOST="router.example.com"
-fi
-
-if [ -z "$DDNS_DOMAIN" ]; then
-    echo "WARNING: ddns_domain not found in U-Boot env, using default." >&2
-    DDNS_DOMAIN="router.example.com@example.com"
-fi
-
-if [ -z "$DDNS_PASSWORD" ]; then
-    echo "WARNING: ddns_password not found in U-Boot env, using default." >&2
-    DDNS_PASSWORD="changeme123"
-fi
+#Set defaults if any of the values are missing.
+DDNS_LOOKUP_HOST=${DDNS_LOOKUP_HOST:-"missing-value-in-uboot.example.com"}
+DDNS_DOMAIN=${DDNS_DOMAIN:-"missing-value-in-uboot@example.com"}
+DDNS_PASSWORD=${DDNS_PASSWORD:-"changeme123"}
 
 uci -q batch << EOI
 set ddns.global='ddns'
 set ddns.global.ddns_dateformat='%F %R'
 set ddns.global.ddns_loglines='250'
 set ddns.global.upd_privateip='0'
+
+# Delete default ddns entries
+delete ddns.myddns_ipv4
+delete ddns.myddns_ipv6
 
 set ddns.Cloudflare='service'
 set ddns.Cloudflare.service_name='cloudflare.com-v4'

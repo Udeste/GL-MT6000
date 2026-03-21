@@ -5,15 +5,10 @@ HOST0_NAME=$(fw_printenv -n dhcp_host0_name 2>/dev/null)
 HOST0_MAC=$(fw_printenv -n dhcp_host0_mac 2>/dev/null)
 HOST0_DUID=$(fw_printenv -n dhcp_host0_duid 2>/dev/null)
 
-if [ -z "$HOST0_MAC" ]; then
-    echo "WARNING: dhcp_host_pi5_mac not found in U-Boot env, using default." >&2
-    HOST0_MAC="00:11:22:33:44:55"
-fi
-
-if [ -z "$HOST0_DUID" ]; then
-    echo "WARNING: dhcp_host_pi5_duid not found in U-Boot env, using default." >&2
-    HOST0_DUID="000000000000000000000000000000000000"
-fi
+# Set defaults if any of the values are missing
+HOST0_NAME=${HOST0_NAME:-"missing-value-in-uboot"}
+HOST0_MAC=${HOST0_MAC:-"00:11:22:33:44:55"}
+HOST0_DUID=${HOST0_DUID:-"000000000000000000000000000000000000"}
 
 has_host() {
     local name="$1" i=0

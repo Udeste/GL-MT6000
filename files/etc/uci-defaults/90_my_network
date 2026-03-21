@@ -2,10 +2,8 @@
 
 DHCP_DEFAULT_DUID=$(fw_printenv -n dhcp_default_duid 2>/dev/null)
 
-if [ -z "$DHCP_DEFAULT_DUID" ]; then
-    echo "WARNING: dhcp_default_duid not found in U-Boot env, using default." >&2
-    DHCP_DEFAULT_DUID="000000000000000000000000000000000000"
-fi
+# Set defaults if the value is missing
+DHCP_DEFAULT_DUID=${DHCP_DEFAULT_DUID:-"000000000000000000000000000000000000"}
 
 uci -q batch << EOI
 
