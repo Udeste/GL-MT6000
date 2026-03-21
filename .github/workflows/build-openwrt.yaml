@@ -3,6 +3,8 @@ name: Build OpenWrt for GL-MT6000
 permissions:
   contents: write
   actions: write
+  pages: write
+  id-token: write
 
 on:
   workflow_dispatch:
@@ -96,23 +98,40 @@ jobs:
             sleep 60
             make -j1 V=s
           }
-          mkdir -p firmware
-          find ./bin -type f \( -iname 'openwrt-*-sysupgrade.bin' -or -iname 'config.buildinfo' -or -iname 'version.buildinfo' \) -exec mv -v {} ./firmware/ \; ||:
-          mv .config firmware/full.config ||:
-          cd firmware && sha256sum openwrt-*-sysupgrade.bin >sha256sums ||:
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v6.0.0
+      - name: Prepare gh-pages content
+        run: |
+          # Checkout existing gh-pages content, or start fresh if branch doesn't exist yet
+          git fetch origin gh-pages || true
+          mkdir -p gh-pages-content
+          git --work-tree=gh-pages-content checkout origin/gh-pages -- . 2>/dev/null || true
+
+          # Merge new build folder(s) from ./bin into the existing gh-pages content
+          cp -r ./bin/. gh-pages-content/
+
+          # Keep only the 10 most recent versioned build folders, prune the rest
+          ls -1d gh-pages-content/*/ 2>/dev/null | sort -V | head -n -10 | xargs -r rm -rf
+
+      - name: Publish to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          name: gl-mt6000-firmware
-          path: firmware/*
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./gh-pages-content
+          force_orphan: true  # squash gh-pages history each time to keep the branch lean
 
       - name: Create release
         run: |
           RELEASE_DATE=$(date +%F)
+          PAGES_BASE="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}"
+
+          # Resolve sysupgrade file from the current build folder (only one folder exists under bin per run)
+          BIN_FOLDER=$(ls -1d ./bin/*/ | head -1)
+          SYSUPGRADE_PATH=$(find "$BIN_FOLDER" -iname 'openwrt-*-sysupgrade.bin' | head -1 | sed 's|^\./bin/||')
+          SYSUPGRADE_URL="${PAGES_BASE}/${SYSUPGRADE_PATH}"
+
           gh release delete "${{ needs.check_commits.outputs.release_prefix }}-${RELEASE_DATE}" --cleanup-tag -y --repo "${{ github.repository }}" ||:
 
-          NOTES=$(cat << 'EOF'
+          NOTES=$(cat << EOF
           ### 🔄 Main Repository
           - **Repository:** [${{ env.REMOTE_REPOSITORY }}](https://github.com/${{ env.REMOTE_REPOSITORY }})
           - **Branch:** ${{ needs.check_commits.outputs.remote_branch }}
@@ -128,7 +147,7 @@ jobs:
           Several values are read from the **U-Boot environment** at boot time — if not set, flashing this image **will brick your router**. 🧱
 
           ### 📖 Before You Proceed
-          Read the [`README`](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/README.md) for the required variables, how to set them and 🛡️ [recovery options](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/README.md#recovery-options-if-something-goes-wrong).
+          Read the README for the required variables, how to set them and recovery options.
 
           > **Do not use** these firmwares unless you have the exact same setup. **Fork and adapt instead.** 🚨
 
@@ -137,14 +156,12 @@ jobs:
           ### 📝 Build Information
           - **Target:** [Flint 2 (GL-MT6000)](https://openwrt.org/toh/gl.inet/gl-mt6000)
           - **Configuration:** [${{ env.CONFIG_FILE }}](${{ env.CONFIG_FILE }})
-          - **Wireguard VPN**
-          - **Shell history enabled**
-          - **DDNS for** Cloudflare
-          - Included packages:
-            - **collectd** and **luci-app-statistics** for monitoring and graphing system performance (CPU, RAM, network traffic, etc).
-            - **iperf3** for network performance testing.
-            - **watch**, **wget**, **htop**, **drill**
-          - **REMOVED:** adblock, avahi, samba, usb storage, zerotier, tailscale ...
+
+          ---
+
+          ### 📦 Downloads
+          - **Sysupgrade:** [${SYSUPGRADE_PATH##*/}](${SYSUPGRADE_URL})
+          - **All packages & files:** [GitHub Pages](${PAGES_BASE})
           EOF
           )
 
@@ -152,12 +169,11 @@ jobs:
             --repo "${{ github.repository }}" \
             --latest \
             --title "OpenWrt Custom Release for Flint 2 (${{ needs.check_commits.outputs.release_prefix }}-${RELEASE_DATE})" \
-            --notes "$NOTES" \
-          firmware/*
+            --notes "$NOTES"
 
       - name: Clean up old releases
         run: |
-          # '.[0:10][]' limits to the 10 most recent releases
+          # keep only the 10 most recent releases
           gh api repos/${{ github.repository }}/releases | jq -r '.[10:][] | "\(.id) \(.tag_name)"' | while read id tag; do
             gh api -X DELETE "repos/${{ github.repository }}/releases/$id" && gh api -X DELETE "repos/${{ github.repository }}/git/refs/tags/$tag" 2>/dev/null ||:
           done
