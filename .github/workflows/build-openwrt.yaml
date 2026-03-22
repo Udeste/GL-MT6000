@@ -22,7 +22,7 @@ env:
 jobs:
   check_commits:
     name: Check for new commits
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-24.04
     outputs:
       remote_branch: ${{ steps.check_commits.outputs.remote_branch }}
       release_prefix: ${{ steps.check_commits.outputs.release_prefix }}
@@ -67,12 +67,30 @@ jobs:
         with:
           path: "builder_repo"
 
+      - name: Restore cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            dl/
+            staging_dir/
+            build_dir/host/llvm*/
+          key: openwrt-${{ needs.check_commits.outputs.remote_branch }}
+
       - name: Update and install feeds
         run: |
           ./scripts/feeds update -a
           ./scripts/feeds install -a
           # run again because sometimes it misses some dependencies
           ./scripts/feeds install -a
+
+      - name: Prepare signing keys
+        env:
+          APKSIGN_PRIVATE_KEY: ${{ secrets.APKSIGN_PRIVATE_KEY }}
+          APKSIGN_PUBLIC_CERT: ${{ secrets.APKSIGN_PUBLIC_CERT }}
+        run: |
+          echo "$APKSIGN_PRIVATE_KEY" > ./private-key.pem
+          echo "$APKSIGN_PUBLIC_CERT" > ./public-key.pem
+          chmod 600 ./private-key.pem
 
       - name: Setup configuration and custom files
         run: |
@@ -81,6 +99,7 @@ jobs:
           mv -v builder_repo/files ./
           mv -v builder_repo/${{ env.CONFIG_FILE }} .config
           rm -rfv builder_repo
+
           make defconfig
 
       - name: Build firmware
@@ -96,6 +115,20 @@ jobs:
             make -j1 V=s
           }
 
+      - name: Cleanup apk signing key
+        if: always()   # runs even if previous steps fail
+        run: rm -f ./private-key.pem ./public-key.pem
+
+      - name: Save cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            dl/
+            staging_dir/
+            build_dir/host/llvm*/
+          key: openwrt-${{ needs.check_commits.outputs.remote_branch }}
+
       - name: Prepare gh-pages content
         run: |
           # Checkout existing gh-pages content, or start fresh if branch doesn't exist yet
@@ -109,7 +142,7 @@ jobs:
           # Keep only the 10 most recent versioned build folders, prune the rest
           ls -1d gh-pages-content/*/ 2>/dev/null | sort -V | head -n -10 | xargs -r rm -rf
 
-      - name: Publish to GitHub Pages
+      - name: Publish apk Packages to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
