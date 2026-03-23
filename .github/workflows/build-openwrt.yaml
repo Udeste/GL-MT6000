@@ -53,7 +53,7 @@ jobs:
         run: |
           sudo apt remove -y '*cloud*' '*firefox*' '*chrome*' '*dotnet*' '*php*'
           sudo apt update -y && sudo apt upgrade -y
-          sudo apt install -y build-essential clang flex bison g++ gawk gettext libncurses-dev libssl-dev python3-setuptools rsync swig unzip zlib1g-dev file wget git
+          sudo apt install -y build-essential clang flex bison g++ gawk gettext libncurses-dev libssl-dev python3-setuptools rsync swig unzip zlib1g-dev file wget git golang
           sudo apt autoremove -y && sudo apt clean -y
 
       - name: Checkout remote repository
@@ -102,13 +102,16 @@ jobs:
 
           make defconfig
 
-      - name: Build firmware
+      - name: Build firmware (download)
         run: |
           make download -j$(nproc) || {
             echo "Retrying..."
             sleep 60
             make download -j1 V=s
           }
+
+      - name: Build firmware
+        run: |
           make -j$(nproc) || {
             echo "Retrying..."
             sleep 60
