@@ -53,7 +53,7 @@ jobs:
         run: |
           sudo apt remove -y '*cloud*' '*firefox*' '*chrome*' '*dotnet*' '*php*'
           sudo apt update -y && sudo apt upgrade -y
-          sudo apt install -y build-essential clang flex bison g++ gawk gettext libncurses-dev libssl-dev python3-setuptools rsync swig unzip zlib1g-dev file wget git golang
+          sudo apt install -y build-essential clang flex bison g++ gawk gettext libncurses-dev libssl-dev python3-setuptools rsync swig unzip zlib1g-dev file wget llvm git golang
           sudo apt autoremove -y && sudo apt clean -y
 
       - name: Checkout remote repository
@@ -68,6 +68,7 @@ jobs:
           path: "builder_repo"
 
       - name: Restore cache
+        id: cache-restore
         uses: actions/cache/restore@v4
         with:
           path: |
@@ -75,6 +76,11 @@ jobs:
             staging_dir/
             build_dir/host/llvm*/
           key: openwrt-${{ needs.check_commits.outputs.remote_branch }}
+
+      - name: Fix cache timestamps
+        run: |
+          find build_dir/ staging_dir/ -name '.stamp_*' -o -name '.built' -o -name '.configured' | xargs touch 2>/dev/null || true
+          # find build_dir/ staging_dir/ -type f | xargs touch 2>/dev/null || true
 
       - name: Update and install feeds
         run: |
@@ -101,6 +107,11 @@ jobs:
           rm -rfv builder_repo
 
           make defconfig
+
+      - name: Check LLVM cache hit
+        run: |
+          echo "Cache hit: ${{ steps.cache-restore.outputs.cache-hit }}"
+          ls -la build_dir/host/ 2>/dev/null || echo "build_dir/host is empty"
 
       - name: Build firmware (download)
         run: |
